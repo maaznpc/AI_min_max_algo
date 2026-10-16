@@ -1,6 +1,6 @@
-# Branch — Minimax, made visible
+# Branch — Algorithms, made visible
 
-An interactive website for learning minimax and alpha–beta pruning. The starting tree reproduces the uploaded lecture example: `2, 3, 5, 9, 0, 1, 7, 5`.
+An interactive website for learning adversarial search, graph search, and evolutionary algorithms. All three playgrounds share the same calm green design and are accessible from the header. Reference material inspired the topics; graph and evolutionary examples are original, working simulations.
 
 ## Run locally
 
@@ -24,11 +24,23 @@ The Vite server listens on all interfaces. There is no backend, database, API ke
 
 The lecture example returns **3**. Minimax evaluates all **8** leaves and **15** nodes; alpha–beta evaluates **5** leaves and **11** nodes. A cutoff value is explicitly shown as a lower (`≥`) or upper (`≤`) bound, rather than an exact value.
 
+### Graph search — `#/search`
+
+Explore BFS, DFS, UCS, A*, and greedy best-first on editable weighted graphs. Follow the real frontier, expanded nodes, parent updates, route costs, and pseudocode. Choose start and goal, edit weights or heuristic estimates, compare all five searches, and try an unreachable goal. Completeness, optimality, graph complexity, and textbook tree-search bounds are explained below.
+
+The garden example deliberately separates fewest edges from cheapest cost: BFS returns a 3-edge route costing 13, while UCS and A* return a 4-edge route costing 7. A* supports reopening improved states. Automatic heuristics are lower bounds generated from precomputed goal distances for teaching; custom overestimates are flagged.
+
+### Evolutionary N-Queens — `#/queens`
+
+Play with 4, 6, 8, or 10 queens, or evolve a solution using a real genetic algorithm. Control population size, per-gene mutation probability, parent selection (tournament or roulette), generation limit, and random seed. The best two boards survive by elitism. There is no stored solution or hidden backtracking solver.
+
+Follow every generation, inspect population members, see fitness and conflicts, and trace actual parents, one-point crossover, and mutation for a fittest newborn below the board. The manual game lets you move queens and seed a new population with your arrangement. The default 8-queens run (seed 12) solves in 27 generations; other runs can reach the limit without solving. Fitness is the number of non-attacking queen pairs.
+
 ## Validate and build
 
 ```sh
-npm test           # 6 algorithm tests, including 144 reference comparisons
-npm run test:e2e   # 5 desktop/mobile browser interaction tests
+npm test           # 18 algorithm tests, including reference comparisons
+npm run test:e2e   # 11 desktop/mobile browser interaction tests
 npm run build     # static production output in dist/
 npm run preview   # serve the production build
 ```
@@ -47,4 +59,4 @@ For first-time activation, open the repository's **Settings → Pages**, choose 
 
 ## Implementation
 
-React, Vite, Lucide icons, and a custom responsive SVG tree. `src/algorithm.js` builds a real game tree and records independent search snapshots, making backward stepping deterministic. `src/main.jsx` renders the visualization, explanations, controls, comparison, and accessible dialogs. All algorithm computation runs in the browser.
+React, Vite, Lucide icons, custom responsive SVG graphs, and an interactive chessboard. `src/algorithm.js`, `src/search.js`, and `src/evolution.js` contain the algorithms and independent snapshots for reversible playback. `src/shared.jsx` supplies navigation, dialogs, and playback; the new playgrounds are lazy-loaded. Hash routes work on GitHub Pages without server rewrites. All computation and bundled fonts run locally in the browser.

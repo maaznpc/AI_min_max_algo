@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   GitFork,
@@ -16,7 +16,6 @@ import {
   Plus,
   Maximize2,
   X,
-  BookOpen,
   Code2,
   Scissors,
   Check,
@@ -43,6 +42,10 @@ import "@fontsource/manrope/latin-600.css";
 import "@fontsource/manrope/latin-700.css";
 import "@fontsource/manrope/latin-800.css";
 import "./styles.css";
+import "./playgrounds.css";
+import { Header, Modal } from "./shared";
+const SearchPage = React.lazy(() => import("./SearchPage"));
+const QueensPage = React.lazy(() => import("./QueensPage"));
 
 const cx = (...s) => s.filter(Boolean).join(" ");
 const getRandomValues = (count) =>
@@ -196,27 +199,15 @@ function App() {
 
   return (
     <>
-      <header className="site-header">
-        <a className="brand" href="#" aria-label="Branch home">
-          <span className="brand-mark">
-            <GitFork size={23} />
-          </span>
-          branch<span className="brand-dot">.</span>
-        </a>
-        <div className="header-divider" />
-        <span className="brand-descriptor">
-          A little clarity for complex decisions.
-        </span>
-        <nav>
-          <a className="nav-active" href="#playground">
-            Playground
-          </a>
-          <a href="#learn">The concepts</a>
-          <button className="nav-guide" onClick={() => setModal("guide")}>
-            <BookOpen size={15} /> Quick guide <ArrowUpRight size={14} />
-          </button>
-        </nav>
-      </header>
+      <Header
+        active="minimax"
+        onGuide={() => setModal("guide")}
+        onConcepts={() =>
+          document
+            .getElementById("learn")
+            .scrollIntoView({ behavior: "smooth" })
+        }
+      />
       <main>
         <section className="hero" id="playground">
           <div>
@@ -1214,63 +1205,45 @@ function Compare({ comparisons, tree, onRun }) {
   );
 }
 
-function Modal({ title, children, onClose }) {
-  const dialog = useRef(null);
+function Site() {
+  const readRoute = () =>
+    window.location.hash.startsWith("#/search")
+      ? "search"
+      : window.location.hash.startsWith("#/queens")
+        ? "queens"
+        : "minimax";
+  const [route, setRoute] = useState(readRoute);
   useEffect(() => {
-    const previous = document.activeElement;
-    const old = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    dialog.current.focus();
-    const trap = (e) => {
-      if (e.key !== "Tab") return;
-      const buttons = dialog.current.querySelectorAll(
-        'button:not(:disabled), a, input, select, [tabindex="0"]',
-      );
-      const first = buttons[0],
-        last = buttons[buttons.length - 1];
-      if (
-        e.shiftKey &&
-        (document.activeElement === first ||
-          document.activeElement === dialog.current)
-      ) {
-        e.preventDefault();
-        last?.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first?.focus();
-      }
-    };
-    document.addEventListener("keydown", trap);
-    return () => {
-      document.body.style.overflow = old;
-      document.removeEventListener("keydown", trap);
-      previous?.focus();
-    };
+    const update = () => setRoute(readRoute());
+    window.addEventListener("hashchange", update);
+    return () => window.removeEventListener("hashchange", update);
   }, []);
+  useEffect(() => {
+    document.title =
+      route === "search"
+        ? "Graph search — Branch"
+        : route === "queens"
+          ? "Evolutionary N-Queens — Branch"
+          : "Branch — Minimax, made visible.";
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [route]);
   return (
-    <div
-      className="modal-backdrop"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <section
-        className="modal"
-        ref={dialog}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modal-title"
-        tabIndex="-1"
-      >
-        <div className="modal-heading">
-          <span className="eyebrow">BRANCH / FIELD NOTES</span>
-          <button aria-label="Close dialog" onClick={onClose}>
-            <X size={20} />
-          </button>
+    <React.Suspense
+      fallback={
+        <div className="page-loading">
+          <GitFork size={28} />
+          <span>Growing a little clarity…</span>
         </div>
-        <h2 id="modal-title">{title}</h2>
-        {children}
-      </section>
-    </div>
+      }
+    >
+      {route === "search" ? (
+        <SearchPage />
+      ) : route === "queens" ? (
+        <QueensPage />
+      ) : (
+        <App />
+      )}
+    </React.Suspense>
   );
 }
-
-createRoot(document.getElementById("root")).render(<App />);
+createRoot(document.getElementById("root")).render(<Site />);
